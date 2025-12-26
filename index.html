@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SpeakSmart - Practice Dashboard</title>
+  
+  <style>
+    /* ================= GAYA CSS (STYLE) ================= */
+    :root {
+      --bg-body: #f4f6f9;
+      --bg-card: #ffffff;
+      --primary: #4c63ff;      /* Warna Biru Utama */
+      --primary-hover: #3a4fe3;
+      --text-dark: #1f2937;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+      --radius-sm: 8px;
+      --radius-lg: 16px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    * { box-sizing: border-box; font-family: "Inter", "Segoe UI", sans-serif; }
+    
+    body {
+      margin: 0; 
+      background: var(--bg-body); 
+      color: var(--text-dark);
+      height: 100vh;
+      overflow: hidden; /* Supaya scroll ditangani per-section */
+    }
+
+    /* --- LOGIN VIEW --- */
+    #login-view {
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      height: 100vh;
+      background: var(--bg-body);
+      position: absolute; width: 100%; z-index: 999;
+    }
+    
+    .login-card {
+      background: var(--bg-card); padding: 40px; 
+      border-radius: var(--radius-lg); box-shadow: var(--shadow);
+      width: 100%; max-width: 400px; text-align: center;
+    }
+
+    .input-login {
+      width: 100%; padding: 12px; margin-bottom: 15px;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+    }
+
+    /* --- DASHBOARD LAYOUT --- */
+    .app-layout {
+      display: none; /* Hidden by default */
+      grid-template-columns: 260px 1fr;
+      height: 100vh;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      background: var(--bg-body);
+      padding: 24px;
+      border-right: 1px solid transparent;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+
+    .brand {
+      font-size: 20px; font-weight: 800; color: #000;
+      margin-bottom: 30px; padding-left: 10px;
+    }
+
+    .nav-item {
+      text-align: left; padding: 12px 16px;
+      background: transparent; border: none;
+      border-radius: var(--radius-sm); color: var(--text-dark);
+      font-weight: 500; cursor: pointer; transition: 0.2s;
+      width: 100%; font-size: 14px;
+    }
+
+    .nav-item:hover { background: #eef2ff; color: var(--primary); }
+    .nav-item.active { background: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-weight: 600; }
+
+    /* MAIN CONTENT */
+    .main-content {
+      padding: 32px 40px;
+      overflow-y: auto;
+    }
+
+    /* HEADER SECTION */
+    .greeting-header h1 {
+      font-size: 28px; font-weight: 700; margin: 0 0 8px 0;
+    }
+
+    .breadcrumbs {
+      color: var(--text-muted); font-size: 14px; margin-bottom: 24px;
+    }
+    .breadcrumbs span { cursor: pointer; }
+    .breadcrumbs span:hover { color: var(--primary); }
+
+    /* CARD LATIHAN */
+    .practice-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: 2fr 1fr; /* Kiri konten, Kanan petunjuk */
+      gap: 32px;
+      align-items: start;
+    }
+
+    /* Kiri: Input & Controls */
+    .left-panel { display: flex; flex-direction: column; gap: 20px; }
+
+    .input-area label { font-weight: 600; font-size: 14px; display: block; margin-bottom: 8px; }
+    
+    .target-input {
+      width: 100%; padding: 16px; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); font-size: 16px; outline: none;
+      background: #fafafa;
+    }
+    .target-input:focus { border-color: var(--primary); background: #fff; }
+
+    /* CHIPS (Suggestion Buttons) */
+    .suggestion-chips {
+      display: flex; flex-wrap: wrap; gap: 10px;
+    }
+
+    .chip {
+      background: #fff; border: 1px solid var(--border);
+      padding: 8px 16px; border-radius: 20px;
+      font-size: 13px; color: var(--text-muted); cursor: pointer;
+      transition: 0.2s;
+    }
+    .chip:hover { border-color: var(--primary); color: var(--primary); background: #eef2ff; }
+
+    /* ACTION BUTTONS */
+    .action-row {
+      display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px;
+    }
+
+    .btn {
+      padding: 12px 20px; border-radius: 10px; font-weight: 600; font-size: 14px;
+      cursor: pointer; border: none; display: flex; align-items: center; gap: 8px;
+    }
+
+    .btn-blue { background: var(--primary); color: white; }
+    .btn-blue:hover { background: var(--primary-hover); }
+
+    .btn-light { background: #f3f4f6; color: var(--text-dark); }
+    .btn-light:hover { background: #e5e7eb; }
+
+    .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-dark); }
+
+    /* Kanan: Petunjuk */
+    .right-panel {
+      border-left: 1px solid var(--border);
+      padding-left: 32px;
+    }
+    .right-panel h3 { font-size: 16px; margin-top: 0; }
+    .right-panel p, .right-panel li { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+    .right-panel ul { padding-left: 20px; }
+
+    /* HASIL ANALISIS */
+    .analysis-section {
+      margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);
+    }
+    .result-item { margin-bottom: 10px; font-size: 14px; }
+    .result-label { font-weight: 600; width: 120px; display: inline-block; }
+    
+    .feedback-box {
+      background: #f9fafb; padding: 15px; border-radius: 8px;
+      margin-top: 10px; min-height: 50px; border: 1px solid #eee;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .app-layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; } /* Mobile menu simplified */
+      .practice-card { grid-template-columns: 1fr; }
+      .right-panel { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 20px; }
+    }
+    
+    /* Animation */
+    .btn-blue.recording { background: #ef4444; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+  </style>
+</head>
+<body>
+
+  <div id="login-view">
+    <div class="login-card">
+      <h2 style="color: var(--primary); margin-top:0;">👋 Welcome Back</h2>
+      <p style="color: var(--text-muted); font-size: 14px;">Masukkan email untuk memulai sesi latihan.</p>
+      
+      <input type="email" id="emailInput" class="input-login" placeholder="name@example.com" />
+      <input type="password" id="passInput" class="input-login" placeholder="Password (bebas)" />
+      
+      <button onclick="handleLogin()" class="btn btn-blue" style="width: 100%; justify-content: center;">
+        Masuk Dashboard
+      </button>
+    </div>
+  </div>
+
+  <div id="app-view" class="app-layout">
+    
+    <aside class="sidebar">
+      <div class="brand">SpeakSmart</div>
+      <button class="nav-item active">Latihan Pengucapan</button>
+      <button class="nav-item">Buat Kalimat Baru</button>
+      <button class="nav-item">Penjelasan Pronunciation</button>
+      <button class="nav-item">History</button>
+      <div style="flex-grow: 1;"></div> <button onclick="handleLogout()" class="nav-item" style="color: #ef4444;">Logout</button>
+    </aside>
+
+    <main class="main-content">
+      
+      <header class="greeting-header">
+        <h1 id="greetingText">Hello, User</h1>
+        <div class="breadcrumbs">
+          Practice &gt; History &gt; Progress &gt; Profile &gt;
+        </div>
+      </header>
+
+      <section class="practice-card">
+        
+        <div class="left-panel">
+          
+          <div class="input-area">
+            <label>Target kata / kalimat</label>
+            <input id="targetInput" type="text" class="target-input" value="Hello, how are you today?" />
+          </div>
+
+          <div class="suggestion-chips">
+            <div class="chip" onclick="setTarget(this)">Hello, how are you today?</div>
+            <div class="chip" onclick="setTarget(this)">My favorite hobby is reading books.</div>
+            <div class="chip" onclick="setTarget(this)">I would like to order a coffee, please.</div>
+            <div class="chip" onclick="setTarget(this)">The quick brown fox jumps over the lazy dog.</div>
+          </div>
+
+          <div class="action-row">
+            <button id="recordBtn" class="btn btn-blue">
+              🎤 Mulai Rekam
+            </button>
+            <button id="downloadBtn" class="btn btn-light" disabled>
+              ⬇ Download WAV
+            </button>
+            <button class="btn btn-light">
+              🌐 Translate
+            </button>
+            <select class="btn btn-outline" style="outline: none;">
+              <option>Indonesia</option>
+              <option>English</option>
+            </select>
+          </div>
+
+          <canvas id="waveCanvas" width="500" height="60" style="width: 100%; height: 60px; background: #fff; border-radius: 8px;"></canvas>
+
+          <div class="analysis-section">
+            <h3 style="margin: 0 0 15px 0;">Hasil Analisis</h3>
+            
+            <div class="result-item">
+              <span class="result-label">Transkrip:</span>
+              <span id="transcriptResult">-</span>
+            </div>
+            
+            <div class="result-item">
+              <span class="result-label">Skor Pelafalan:</span>
+              <span id="scoreResult" style="font-weight: bold; color: var(--primary);">-</span>
+            </div>
+
+            <div style="margin-top: 10px; font-weight: 600; font-size: 14px;">Feedback</div>
+            <div id="feedbackBox" class="feedback-box">
+              Rekam suara Anda untuk melihat hasil analisis di sini.
+            </div>
+
+            <audio id="audioPlayer" controls style="width: 100%; margin-top: 15px; display: none;"></audio>
+          </div>
+
+        </div>
+
+        <div class="right-panel">
+          <h3>Petunjuk</h3>
+          <p>Coba latih kalimat berikut:</p>
+          <ul>
+            <li>"Hello, how are you today?"</li>
+            <li>"My favorite hobby is reading books."</li>
+          </ul>
+          
+          <h3>Tips</h3>
+          <p>Gunakan browser <strong>Google Chrome</strong> atau <strong>Edge</strong> untuk hasil transkrip otomatis terbaik.</p>
+          <p>Pastikan mikrofon Anda aktif dan bicara dengan jelas.</p>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <script>
+    /* --- 1. LOGIN & USERNAME LOGIC --- */
+    const loginView = document.getElementById('login-view');
+    const appView = document.getElementById('app-view');
+    const emailInput = document.getElementById('emailInput');
+    const greetingText = document.getElementById('greetingText');
+
+    // Cek Session
+    window.onload = () => {
+      const savedUser = localStorage.getItem('speaksmart_user');
+      if(savedUser) {
+        enterApp(savedUser);
+      }
+    };
+
+    function handleLogin() {
+      const email = emailInput.value.trim();
+      if(!email) {
+        alert("Mohon isi email Anda.");
+        return;
+      }
+      localStorage.setItem('speaksmart_user', email);
+      enterApp(email);
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('speaksmart_user');
+      location.reload();
+    }
+
+    function enterApp(email) {
+      // Logic mengambil nama depan dari email
+      // Contoh: "iqbal.coding@gmail.com" -> "Iqbal"
+      const namePart = email.split('@')[0]; 
+      // Bersihkan titik atau angka jika ada, dan kapitalisasi huruf awal
+      let cleanName = namePart.replace(/[0-9.]/g, ' '); 
+      cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+
+      // Update Teks Hello
+      greetingText.innerText = `Hello, ${cleanName}`;
+
+      // Switch View
+      loginView.style.display = 'none';
+      appView.style.display = 'grid'; // Grid untuk layout sidebar
+    }
+
+    /* --- 2. LOGIC APLIKASI UTAMA (REKAM & CHIPS) --- */
+    const targetInput = document.getElementById('targetInput');
+    const recordBtn = document.getElementById('recordBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const transcriptEl = document.getElementById('transcriptResult');
+    const scoreEl = document.getElementById('scoreResult');
+    const feedbackEl = document.getElementById('feedbackBox');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const waveCanvas = document.getElementById('waveCanvas');
+    const waveCtx = waveCanvas.getContext('2d');
+
+    let recognition;
+    let isRecording = false;
+    let mediaRecorder;
+    let audioChunks = [];
+    let audioCtx, analyser, dataArray, rafId;
+
+    // Fungsi klik Chip/Pill Suggestion
+    function setTarget(el) {
+      targetInput.value = el.innerText;
+    }
+
+    // Setup Web Speech API
+    if (window.SpeechRecognition || window.webkitSpeechRecognition) {
+      const SpeechAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechAPI();
+      recognition.lang = 'en-US';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onresult = (event) => {
+        const spoken = event.results[0][0].transcript;
+        transcriptEl.innerText = spoken;
+        calculateScore(targetInput.value, spoken);
+      };
+      
+      recognition.onerror = (e) => console.log("Speech Error", e);
+    }
+
+    // Event Handler Rekam
+    recordBtn.addEventListener('click', async () => {
+      if(!isRecording) {
+        await startRecording();
+      } else {
+        stopRecording();
+      }
+    });
+
+    async function startRecording() {
+      if (!recognition) return alert("Browser tidak support Speech API. Gunakan Chrome.");
+      
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        // Setup Media Recorder untuk Audio File
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(audioChunks, { type: 'audio/wav' });
+          const url = URL.createObjectURL(blob);
+          audioPlayer.src = url;
+          audioPlayer.style.display = 'block';
+          downloadBtn.disabled = false;
+          
+          // Handler Download
+          downloadBtn.onclick = () => {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'recording.wav';
+            a.click();
+          };
+        };
+        mediaRecorder.start();
+
+        // Setup Visualizer & Recognition
+        setupVisualizer(stream);
+        recognition.start();
+
+        // Update UI
+        isRecording = true;
+        recordBtn.classList.add('recording');
+        recordBtn.innerHTML = "⏹ Berhenti";
+        feedbackEl.innerText = "Mendengarkan...";
+        transcriptEl.innerText = "...";
+        scoreEl.innerText = "-";
+        audioPlayer.style.display = 'none';
+
+      } catch (err) {
+        alert("Izin mikrofon diperlukan: " + err);
+      }
+    }
+
+    function stopRecording() {
+      if(!isRecording) return;
+      isRecording = false;
+      recognition.stop();
+      mediaRecorder.stop();
+      
+      recordBtn.classList.remove('recording');
+      recordBtn.innerHTML = "🎤 Mulai Rekam";
+      
+      // Stop visualizer
+      if(audioCtx) audioCtx.close();
+      cancelAnimationFrame(rafId);
+      waveCtx.clearRect(0,0, waveCanvas.width, waveCanvas.height);
+    }
+
+    /* --- 3. FUNGSI PENDUKUNG (SCORING & VISUAL) --- */
+    function calculateScore(target, spoken) {
+      // Normalisasi teks (hapus tanda baca, lowercase)
+      const tClean = target.toLowerCase().replace(/[^a-z0-9 ]/g, "");
+      const sClean = spoken.toLowerCase().replace(/[^a-z0-9 ]/g, "");
+      
+      // Simple logic match percentage based on length difference
+      // (Untuk produksi gunakan algoritma Levenshtein)
+      const tArr = tClean.split(" ");
+      const sArr = sClean.split(" ");
+      
+      let matchCount = 0;
+      let feedbackHTML = "";
+
+      tArr.forEach(word => {
+        if(sArr.includes(word)) {
+          matchCount++;
+          feedbackHTML += `<span style="color:green; font-weight:bold;">${word}</span> `;
+        } else {
+          feedbackHTML += `<span style="color:red; text-decoration:underline;">${word}</span> `;
+        }
+      });
+
+      const score = Math.min(100, Math.round((matchCount / tArr.length) * 100));
+      
+      scoreEl.innerText = score + "/100";
+      feedbackEl.innerHTML = feedbackHTML;
+    }
+
+    function setupVisualizer(stream) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioCtx.createAnalyser();
+      const src = audioCtx.createMediaStreamSource(stream);
+      src.connect(analyser);
+      analyser.fftSize = 256;
+      const bufferLength = analyser.frequencyBinCount;
+      dataArray = new Uint8Array(bufferLength);
+      draw();
+    }
+
+    function draw() {
+      rafId = requestAnimationFrame(draw);
+      analyser.getByteTimeDomainData(dataArray);
+      
+      waveCtx.fillStyle = '#fff';
+      waveCtx.fillRect(0, 0, waveCanvas.width, waveCanvas.height);
+      waveCtx.lineWidth = 2;
+      waveCtx.strokeStyle = '#4c63ff';
+      waveCtx.beginPath();
+      
+      const sliceWidth = waveCanvas.width / dataArray.length;
+      let x = 0;
+      
+      for(let i = 0; i < dataArray.length; i++) {
+        const v = dataArray[i] / 128.0;
+        const y = v * waveCanvas.height / 2;
+        if(i === 0) waveCtx.moveTo(x, y);
+        else waveCtx.lineTo(x, y);
+        x += sliceWidth;
+      }
+      waveCtx.stroke();
+    }
+  </script>
+</body>
+</html>
